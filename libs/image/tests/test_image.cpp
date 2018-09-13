@@ -15,6 +15,7 @@
  */
 
 #include <image/ColorTransform.h>
+#include <image/KtxBundle.h>
 #include <image/ImageOps.h>
 #include <image/ImageSampler.h>
 #include <image/LinearImage.h>
@@ -305,6 +306,27 @@ TEST_F(ImageTest, Mipmaps) { // NOLINT
     for (uint32_t index = 0; index < count; ++index) {
         updateOrCompare(mips[index], "mip" + std::to_string(index + 1) + "_200x100.png");
     }
+}
+
+TEST_F(ImageTest, Ktx) { // NOLINT
+    KtxBundle empty;
+    ASSERT_FALSE(empty.isValid());
+
+    uint8_t* data;
+    uint32_t size;
+    ASSERT_FALSE(empty.getBlob({0, 0, 0}, &data, &size));
+
+    KtxBundle nascent(2, 1, true);
+    ASSERT_EQ(nascent.getNumMipLevels(), 2);
+    ASSERT_EQ(nascent.getArrayLength(), 1);
+    ASSERT_TRUE(nascent.isCubemap());
+
+    uint8_t foo[] = {1,2,3};
+
+    ASSERT_FALSE(empty.getBlob({0, 0, 0}, &data, &size));
+    ASSERT_TRUE(empty.setBlob({0, 0, 0}, foo, sizeof(foo)));
+    ASSERT_TRUE(empty.getBlob({0, 0, 0}, &data, &size));
+    ASSERT_EQ(size, sizeof(foo));
 }
 
 static void printUsage(const char* name) {
